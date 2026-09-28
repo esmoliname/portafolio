@@ -2,7 +2,6 @@ import { Boxes } from 'lucide-react'
 import type { JSX } from 'react'
 
 import { capabilities } from '../../data/portfolio'
-import { cn } from '../../lib/cn'
 import { SkillPanel } from './SkillPanel'
 
 /** How to drive the pad, in the same mono register as the rest of the page. */
@@ -54,7 +53,7 @@ export function StackSection(): JSX.Element {
             being crushed into the 26rem column above. */}
         <ul className="pointer-events-auto mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
           {capabilities.map((group) => (
-            <li key={group.id} className="glass flex flex-col gap-4 rounded-2xl p-6">
+            <li key={group.id} className="flex flex-col gap-4 rounded-2xl p-6 bg-zinc-900/95 backdrop-blur-md border border-zinc-800/80 shadow-2xl">
               <div className="flex items-center gap-3">
                 <span className="inline-flex size-10 items-center justify-center rounded-xl bg-cyan/10 text-cyan">
                   <Boxes className="size-5" aria-hidden="true" />
@@ -66,10 +65,7 @@ export function StackSection(): JSX.Element {
                 {group.items.map((item) => (
                   <li
                     key={item}
-                    className={cn(
-                      'rounded-lg border border-cyan/20 bg-cyan/5 px-2.5 py-1',
-                      'font-mono text-xs text-ink-dim',
-                    )}
+                    className="rounded-lg border border-zinc-700/50 bg-zinc-800/50 px-2.5 py-1 font-mono text-xs text-ink-dim"
                   >
                     {item}
                   </li>

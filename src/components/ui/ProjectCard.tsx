@@ -28,9 +28,9 @@ export function ProjectCard({ project, index }: ProjectCardProps): JSX.Element {
         ease: 'easeOut',
       }}
       className={cn(
-        'glass group flex h-full flex-col gap-4 rounded-2xl p-6 transition-transform duration-300 hover:-translate-y-1',
+        'group flex h-full flex-col gap-4 rounded-2xl p-6 transition-transform duration-300 hover:-translate-y-1',
+        'bg-zinc-900/95 backdrop-blur-md border shadow-2xl',
         theme.border,
-        theme.glow,
       )}
     >
       <p className={cn('font-mono text-xs', theme.text)}>{project.path}</p>
@@ -61,7 +61,7 @@ export function ProjectCard({ project, index }: ProjectCardProps): JSX.Element {
         {project.stack.map((tech) => (
           <li
             key={tech}
-            className="rounded-md bg-neon/5 px-2 py-1 font-mono text-xs text-ink-faint"
+            className="rounded-md bg-zinc-800/50 px-2 py-1 font-mono text-xs text-ink-faint"
           >
             {tech}
           </li>

@@ -3,26 +3,25 @@ import { AdaptiveDpr, ContactShadows, Preload } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 
-import { ACCENTS } from '../../lib/accents'
 import { usePortfolioStore } from '../../store/usePortfolioStore'
 import { useMacropadActions } from '../../hooks/useMacropadActions'
-import { IntelOrb } from './IntelOrb'
 import { Macropad } from './Macropad'
-import { GRID_FRAGMENT_SHADER, GRID_VERTEX_SHADER } from './shaders/intelligence'
 
 /**
  * Camera keyframes, one per scroll section, in world space.
  *
- * The `stack` frame moves in and to the right because that section's macropad
- * pose sits at x = 1.9; the `contact` frame pulls back to hold the angled pose
- * at x = -2.6 without clipping it off the left edge.
+ * Hero: Macropad on the right side, isometric view
+ * About: Slightly angled view
+ * Projects: Macropad pushed back as ambient element
+ * Stack: Macropad front and center for interaction
+ * Contact: Angled view on the left
  */
 const CAMERA_FRAMES: readonly { readonly position: [number, number, number] }[] = [
-  { position: [0, 1.15, 5.4] },
-  { position: [-1.9, 0.35, 5.0] },
-  { position: [1.9, 0.2, 4.6] },
-  { position: [0.7, 0.9, 4.6] },
-  { position: [0.4, 0.6, 5.2] },
+  { position: [2.5, 1.0, 5.0] },   // hero - looking at macropad on the right
+  { position: [0, 1.0, 5.0] },     // about - centered
+  { position: [0, 1.2, 5.5] },     // projects - pulled back
+  { position: [0, 0.8, 4.2] },     // stack - close up for interaction
+  { position: [-2.0, 0.8, 5.0] },  // contact - left side
 ]
 
 const SECTION_INDEX: Record<string, number> = {
@@ -63,63 +62,7 @@ function CameraRig(): null {
   return null
 }
 
-/** Concrete uniform shape for the floor shader — see IntelOrb.tsx. */
-interface GridUniforms extends Record<string, THREE.IUniform> {
-  uTime: { value: number }
-  uColor: { value: THREE.Color }
-}
 
-/** Animated data-grid floor. */
-function GridFloor(): React.JSX.Element {
-  const accent = usePortfolioStore((state) => state.accent)
-  const meshRef = useRef<THREE.Mesh>(null)
-
-  // Use refs for all mutable values to avoid hook mutation warnings
-  const uTimeRef = useRef(0)
-  const uColorRef = useRef(new THREE.Color(ACCENTS.neon.hex))
-
-  // Create uniforms once
-  const uniforms = useMemo<GridUniforms>(
-    () => ({
-      uTime: { value: 0 },
-      uColor: { value: new THREE.Color(ACCENTS.neon.hex) },
-    }),
-    [],
-  )
-
-  useFrame((_, delta) => {
-    uTimeRef.current += delta
-    uColorRef.current.set(ACCENTS[accent].hex)
-
-    // Update via mesh ref to avoid mutating hook-created object
-    if (meshRef.current) {
-      const material = meshRef.current.material as THREE.ShaderMaterial | null
-      if (material?.uniforms) {
-        const mats = material.uniforms as GridUniforms
-        mats.uTime.value = uTimeRef.current
-        mats.uColor.value.copy(uColorRef.current)
-      }
-    }
-  })
-
-  return (
-    <mesh
-      ref={meshRef}
-      rotation={[-Math.PI / 2, 0, 0]}
-      position={[0, -2.1, 0]}
-    >
-      <planeGeometry args={[40, 40]} />
-      <shaderMaterial
-        uniforms={uniforms}
-        vertexShader={GRID_VERTEX_SHADER}
-        fragmentShader={GRID_FRAGMENT_SHADER}
-        transparent
-        depthWrite={false}
-        side={THREE.DoubleSide}
-      />
-    </mesh>
-  )
-}
 
 /* ------------------------------------------------------------------ *
  * Failure surfacing
@@ -185,32 +128,63 @@ function SceneContents(): React.JSX.Element {
 
   return (
     <>
-      <color attach="background" args={['#050608']} />
-      <fog attach="fog" args={['#050608', 6, 18]} />
+      <color attach="background" args={['#09090b']} />
+      <fog attach="fog" args={['#09090b', 10, 25]} />
 
       <CameraRig />
 
-      <ambientLight intensity={0.35} />
+      {/* Clean, well-calibrated lighting for the Macropad */}
+      <ambientLight intensity={1.2} color="#ffffff" />
       <directionalLight
-        position={[4, 7, 5]}
-        intensity={1.5}
-        color="#cfe8ff"
+        position={[10, 10, 5]}
+        intensity={2.0}
+        color="#ffffff"
         castShadow
-        shadow-mapSize={[1024, 1024]}
-        shadow-bias={-0.0004}
+        shadow-mapSize={[2048, 2048]}
+        shadow-bias={-0.0002}
+        shadow-normalBias={0.02}
       />
-      <pointLight position={[-5, 1.5, 3]} intensity={9} distance={16} decay={2} color="#22d3ee" />
-      <pointLight position={[5, -1, 2]} intensity={6} distance={14} decay={2} color="#a855f7" />
+      <directionalLight
+        position={[-5, 5, -5]}
+        intensity={0.8}
+        color="#e0e0ff"
+      />
+      <pointLight
+        position={[3, 3, 2]}
+        intensity={30}
+        distance={8}
+        decay={2}
+        color="#ffffff"
+      />
+      <pointLight
+        position={[-3, 2, -2]}
+        intensity={15}
+        distance={10}
+        decay={2}
+        color="#a8c0ff"
+      />
 
-      <GridFloor />
-      <IntelOrb />
+      {/* Subtle ground plane - barely visible */}
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, -2.2, 0]}
+        receiveShadow
+      >
+        <planeGeometry args={[50, 50]} />
+        <meshStandardMaterial
+          color="#0a0a0f"
+          roughness={0.9}
+          metalness={0.1}
+        />
+      </mesh>
+
       <Macropad onSelect={selectSkill} />
 
       <ContactShadows
-        position={[0, -1.95, 0]}
-        opacity={0.42}
-        scale={14}
-        blur={2.6}
+        position={[0, -2.1, 0]}
+        opacity={0.35}
+        scale={12}
+        blur={3}
         far={5}
         resolution={512}
         color="#000000"

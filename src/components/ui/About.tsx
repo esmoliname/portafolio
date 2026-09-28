@@ -44,7 +44,8 @@ export function About(): JSX.Element {
               <li
                 key={credential.id}
                 className={cn(
-                  'glass flex flex-col gap-3 rounded-2xl border p-6 transition-transform duration-300 hover:-translate-y-1',
+                  'flex flex-col gap-3 rounded-2xl border p-6 transition-transform duration-300 hover:-translate-y-1',
+                  'bg-zinc-900/95 backdrop-blur-md border-zinc-800/80 shadow-2xl',
                   theme.border,
                 )}
               >

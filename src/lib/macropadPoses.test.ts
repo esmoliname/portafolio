@@ -28,8 +28,8 @@ describe('MACROPAD_POSES', () => {
     }
   })
 
-  it('puts the pad in the right half for the skills section, leaving room for the panel', () => {
-    expect(MACROPAD_POSES.stack.position[0]).toBeGreaterThan(0)
+  it('centers the pad for the skills section for direct interaction', () => {
+    expect(MACROPAD_POSES.stack.position[0]).toBe(0)
     expect(MACROPAD_POSES.stack.dim).toBe(0)
   })
 

@@ -30,7 +30,7 @@ const appliedClasses: string[] = [...code.matchAll(/className=(?:"([^"]*)"|\{`([
 /** Every Tailwind negative z-index utility, in both notations. */
 const NEGATIVE_Z_UTILITY = /-z-\[\d+\]|-z-\d+/
 
-describe('WebGL layer stacking contract', () => {
+describe('Spline 3D layer stacking contract', () => {
   it('never applies a negative z-index to any element', () => {
     // `position: relative` + `z-index: auto` establishes no stacking context, so
     // a negative z-index child stacks against the DOCUMENT root (paint step 2)
@@ -42,7 +42,7 @@ describe('WebGL layer stacking contract', () => {
   })
 
   it('mounts the scene as a full-viewport fixed layer', () => {
-    const sceneTag = code.match(/<Scene\b[^>]*\/>/)
+    const sceneTag = code.match(/<SplineScene\b[^>]*\/>/)
     expect(sceneTag).not.toBeNull()
 
     const className = sceneTag?.[0] ?? ''
@@ -54,12 +54,10 @@ describe('WebGL layer stacking contract', () => {
   })
 
   it('keeps the layer explicitly hit-testable', () => {
-    // The scene host now uses `pointer-events-none` on the container div,
-    // but the inner Canvas receives `style={{ pointerEvents: 'auto' }}`,
-    // so hit-testing works. This is more explicit than relying on R3F's
-    // internal inline style, and works with the CSS rule
+    // The scene host uses `pointer-events-none` on the container div,
+    // so hit-testing works with the CSS rule
     // `main > section { pointer-events: none }` in index.css.
-    const sceneTag = code.match(/<Scene\b[^>]*\/>/)?.[0] ?? ''
+    const sceneTag = code.match(/<SplineScene\b[^>]*\/>/)?.[0] ?? ''
     expect(sceneTag).toContain('pointer-events-none')
   })
 
