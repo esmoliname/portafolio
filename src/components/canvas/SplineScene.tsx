@@ -11,8 +11,10 @@ import { skills } from '../../data/portfolio'
  * 1. Create a scene at https://spline.design
  * 2. Publish it and copy the scene URL
  * 3. Set VITE_SPLINE_SCENE_URL in your .env file
+ * 
+ * Default: Public Spline demo scene (floating geometric shapes)
  */
-const SPLINE_SCENE_URL = import.meta.env.VITE_SPLINE_SCENE_URL ?? 'https://prod.spline.design/your-scene-id/scene.splinecode'
+const SPLINE_SCENE_URL = import.meta.env.VITE_SPLINE_SCENE_URL ?? 'https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode'
 
 interface SplineSceneProps {
   readonly className?: string
@@ -104,16 +106,26 @@ function LoadingFallback(): React.JSX.Element {
 function ErrorFallback(): React.JSX.Element {
   return (
     <div className="w-full h-full flex flex-col items-center justify-center gap-4 bg-zinc-950 text-zinc-400 font-mono text-sm">
-      <p>No se pudo cargar la escena 3D</p>
-      <p className="text-xs text-zinc-600">
-        Verifica la URL de Spline en VITE_SPLINE_SCENE_URL
-      </p>
-      <button
-        onClick={() => window.location.reload()}
-        className="mt-4 px-4 py-2 rounded-lg border border-zinc-700 hover:border-zinc-500 transition-colors"
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="text-center space-y-3"
       >
-        Reintentar
-      </button>
+        <p className="text-lg font-semibold text-white">No se pudo cargar la escena 3D</p>
+        <p className="text-xs text-zinc-500 max-w-xs">
+          La escena de Spline no está disponible. Verifica tu conexión o configura <code className="font-mono bg-zinc-800 px-1 rounded">VITE_SPLINE_SCENE_URL</code> en tu archivo <code className="font-mono bg-zinc-800 px-1 rounded">.env</code>.
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800/50 transition-colors text-sm"
+        >
+          <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            <path d="M21 12a9 9 0 1 1-9 9 9.75 9.75 0 0 1 6.74-2.74L21 16" />
+          </svg>
+          Reintentar
+        </button>
+      </motion.div>
     </div>
   )
 }
