@@ -82,38 +82,6 @@ export interface CapabilityGroup {
 }
 
 /* ------------------------------------------------------------------ *
- * Macropad
- * ------------------------------------------------------------------ */
-
-export type KeycapKind = 'alpha' | 'symbol' | 'accent' | 'command'
-
-/** What a physical key triggers inside the experience. */
-export type KeycapAction =
-  | 'scroll-top'
-  | 'scroll-about'
-  | 'scroll-projects'
-  | 'scroll-stack'
-  | 'scroll-contact'
-  | 'burst-confetti'
-  | 'toggle-audio'
-  | 'cycle-accent'
-  | 'pulse-orb'
-
-/** Maps a real `KeyboardEvent.key` to a keycap id. `null` = not bound. */
-export type KeyboardBinding = Readonly<Record<string, string>>
-
-export interface KeycapLayout {
-  readonly id: string
-  readonly label: string
-  /** Secondary glyph printed on the keycap legend. */
-  readonly hint?: string
-  /** `KeyboardEvent.key` that activates it; undefined = pointer only. */
-  readonly key?: string
-  readonly kind: KeycapKind
-  readonly action: KeycapAction
-}
-
-/* ------------------------------------------------------------------ *
  * Navigation
  * ------------------------------------------------------------------ */
 
@@ -123,4 +91,41 @@ export type SectionId = (typeof SECTION_IDS)[number]
 export interface SectionMeta {
   readonly id: SectionId
   readonly label: string
+}
+
+/* ------------------------------------------------------------------ *
+ * Skills + macropad
+ * ------------------------------------------------------------------ */
+
+/**
+ * One keycap. The macropad stopped being a navigation remote: every physical key
+ * now carries a technology, and section navigation lives on the keyboard only
+ * (`T`/`A`/`P`/`S`/`C`) so the two keymaps can never collide.
+ */
+export interface Skill {
+  readonly id: string
+  readonly name: string
+  /** Short text printed on the keycap face, e.g. `TS`. */
+  readonly legend: string
+  /** One-line punchline shown as the headline of the info panel. */
+  readonly slogan: string
+  readonly description: string
+  readonly category: string
+  readonly accent: Accent
+  /** `KeyboardEvent.key` that activates it. */
+  readonly key: string
+  /** Project ids this technology was actually used in. */
+  readonly usedIn: readonly string[]
+}
+
+/**
+ * Where the pad sits for a given scroll section. `dim` runs 0 (full presence,
+ * foreground) to 1 (recessed into the background) and is applied by lerping
+ * every material colour toward the background colour.
+ */
+export interface MacropadPose {
+  readonly position: readonly [number, number, number]
+  readonly rotation: readonly [number, number, number]
+  readonly scale: number
+  readonly dim: number
 }

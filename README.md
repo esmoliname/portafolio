@@ -37,39 +37,81 @@ src/
 ├── components/
 │   ├── canvas/        # Escena 3D
 │   │   ├── Scene.tsx        Canvas, luces, sombras, rig de cámara por scroll
-│   │   ├── Macropad.tsx     Chasis 3x3 con keycaps mecánicos
-│   │   ├── Keycap.tsx       Keycap individual (spring + pointer)
+│   │   ├── Macropad.tsx     Chasis 3x3 + poses por sección + mascota
+│   │   ├── Keycap.tsx       Keycap individual (spring + puntero)
+│   │   ├── Mascot.tsx       Gato blocky que reacciona al press
 │   │   ├── IntelOrb.tsx     Orbe con shader GLSL propio
 │   │   └── shaders/         GLSL del orbe y del piso de datos
-│   ├── ui/            # Nav, Hero, About, BentoGrid, ProjectCard, Stack, Contact, Footer
+│   ├── ui/            # Nav, Hero, About, BentoGrid, ProjectCard, SkillPanel, Stack, Contact, Footer
 │   └── overlay/       # AudioToggle, ScrollHint
 ├── data/portfolio.ts  # Única fuente de contenido del sitio
 ├── hooks/             # useKeyboard, useMacropadActions, useSectionObserver
-├── lib/               # cn, accents, synthAudio
+├── lib/               # cn, accents, synthAudio, macropadPoses
 ├── store/             # zustand: usePortfolioStore, useAudioStore
 ├── types/             # Tipos del dominio
 └── test/setup.ts      # Polyfills para jsdom
 ```
 
-Todo el contenido (nombre, bio, proyectos, certificaciones, stack, socials) vive en
-`src/data/portfolio.ts`. Cambiar textos nunca requiere tocar un componente.
+Todo el contenido (nombre, bio, proyectos, certificaciones, stack, socials, las
+nueve skills del pad) vive en `src/data/portfolio.ts`. Cambiar textos nunca
+requiere tocar un componente.
 
 ## Atajos de teclado
 
 El macropad 3D y el teclado comparten **una única ruta de ejecución**
 (`useMacropadActions`), así que nunca pueden divergir.
 
-| Tecla | Acción                     |
-| ----- | -------------------------- |
-| `T`   | Ir al inicio               |
-| `A`   | Ir a Perfil                |
-| `P`   | Ir a Proyectos             |
-| `S`   | Ir a Stack                 |
-| `C`   | Ir a Contacto              |
-| `B`   | Confeti                    |
-| `O`   | Pulso del orbe             |
-| `M`   | Silenciar / activar audio  |
-| `K`   | Rotar acento de tema        |
+El macropad dejó de ser un control remoto de navegación: **cada tecla física
+es una tecnología**. Como consecuencia hay dos keymaps disjuntos, y un test
+verifica que no puedan colisionar.
+
+| Tecla     | Acción                          |
+| --------- | ------------------------------- |
+| `1`–`9`   | Seleccionar la skill del keycap |
+| `T`       | Ir al inicio                    |
+| `A`       | Ir a Perfil                     |
+| `P`       | Ir a Proyectos                  |
+| `S`       | Ir a Stack                      |
+| `C`       | Ir a Contacto                   |
+| `B`       | Confeti                         |
+| `O`       | Pulso del orbe                  |
+| `M`       | Silenciar / activar audio       |
+| `K`       | Rotar acento de tema            |
+
+## Macropad scroll-driven
+
+`src/lib/macropadPoses.ts` define una pose del pad por sección — posición,
+rotación, escala y un factor `dim` — y el resorte interpola entre ellas. El pad
+es **un solo objeto que se mueve a lo largo de la página**, no cinco estados
+sueltos.
+
+| Sección   | Comportamiento                                            |
+| --------- | --------------------------------------------------------- |
+| Hero      | Centrado e isométrico, escala completa                    |
+| Perfil    | Se corre a la derecha y se atenúa                         |
+| Proyectos | Gira, se desplaza al fondo a la derecha, muy atenuado      |
+| Stack     | A la derecha en primer plano — el panel-info ocupa la izquierda |
+| Contacto  | Pasa al lado izquierdo, en ángulo                         |
+
+`dim` no es opacidad: interpola **cada color de material hacia el color de
+fondo**, así el pad se hunde en la escena en vez de volverse una calcomanía
+translúcida.
+
+La presión de una tecla dispara a la mascota (un gato blocky tipo Bongo Cat
+hecho solo con primitivas): los brazos bajan al bombo, el bombo se aplasta, la
+cabeza se inclina y parpadea. El gatillo es un contador monotónico
+(`mascotHit`) comparado contra un `ref` dentro de `useFrame`, así que dos
+presiones rápidas nunca se colapsan en una sola reacción.
+
+### El detalle que hace que esto funcione
+
+La capa WebGL es `fixed inset-0 -z-10`, detrás de `<main class="relative z-10">`.
+Como cada `<section>` es un bloque de ancho completo, **tapaba todos los clics y
+los keycaps nunca fueron clickeables** — un bug invisible para el typecheck, el
+build y el resto de los tests. `src/index.css` deja los `<section>` transparentes
+al puntero y lo re-habilita en su contenido, y `StackSection` opta explícitamente
+porque la regla por sí sola no basta: el hit test cae en el wrapper. Hay un test
+dedicado (`stackLayout.test.tsx`) que protege este contrato.
 
 ## Motor de audio sintético
 

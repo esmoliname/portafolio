@@ -157,3 +157,33 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ------------------------------------------------------------------ *
+ * Canvas hit-testing
+ * ------------------------------------------------------------------ *
+ * The WebGL layer is `fixed inset-0 z-0`, BEHIND `<main class="z-10">` but
+ * ABOVE the page background. Every <section> is a full-width block, so the
+ * sections were swallowing every click and the keycaps could never be
+ * pressed. Sections become transparent to input and their own children opt
+ * back in.
+ *
+ * Note the layer is `z-0`, not `-z-10`: a negative z-index would stack against
+ * the document root and end up painted *underneath* the root's opaque
+ * `bg-void`, which hid the entire scene. See the comment in App.tsx.
+ *
+ * This is declared inside `@layer base` on purpose. Tailwind v4 emits its
+ * utilities into `@layer utilities`, and an UNLAYERED rule outranks every
+ * layered one regardless of specificity — so a bare rule here would beat
+ * `.pointer-events-auto` and re-break the stack info column. Sitting in
+ * `base` puts it before `utilities` in the layer order, which is what makes
+ * the single-class utilities win as intended.
+ */
+@layer base {
+  main > section {
+    pointer-events: none;
+  }
+
+  main > section > * {
+    pointer-events: auto;
+  }
+}

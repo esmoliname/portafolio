@@ -27,9 +27,15 @@ export function Hero(): JSX.Element {
       className="relative flex min-h-screen items-center overflow-hidden px-6 pt-24 pb-32"
     >
       <div aria-hidden="true" className="grid-lines pointer-events-none absolute inset-0" />
+      {/*
+        Legibility veil for the headline, not a scene mask. It used to end at a
+        fully opaque `to-void`, which hid the lower half of the WebGL layer once
+        the z-index bug was fixed. Capped at 80% so the centred macropad stays
+        readable through it while the copy keeps its contrast.
+      */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-void/20 via-void/70 to-void"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-void/25 via-void/45 to-void/80"
       />
 
       <div className="relative mx-auto w-full max-w-6xl">

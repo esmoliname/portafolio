@@ -6,10 +6,11 @@ import {
   capabilities,
   CONTACT_EMAIL,
   credentials,
-  macropadLayout,
   profile,
   projects,
+  projectsForSkill,
   sections,
+  skills,
 } from './portfolio'
 
 describe('profile', () => {
@@ -77,27 +78,83 @@ describe('capabilities', () => {
   })
 })
 
-describe('macropadLayout', () => {
+describe('skills', () => {
   it('is exactly the 3x3 pad', () => {
-    expect(macropadLayout).toHaveLength(9)
+    expect(skills).toHaveLength(9)
   })
 
-  it('has unique ids and a keyboard binding for every key', () => {
-    const ids = macropadLayout.map((key) => key.id)
-    expect(new Set(ids).size).toBe(ids.length)
+  it('has unique ids, legends and keyboard bindings', () => {
+    const ids = skills.map((skill) => skill.id)
+    const legends = skills.map((skill) => skill.legend)
+    const keys = skills.map((skill) => skill.key)
 
-    const keys = macropadLayout.map((key) => key.key)
-    expect(keys.every((key) => key !== undefined)).toBe(true)
+    expect(new Set(ids).size).toBe(ids.length)
+    expect(new Set(legends).size).toBe(legends.length)
     expect(new Set(keys).size).toBe(keys.length)
   })
 
-  it('maps every navigation keycap to a distinct scroll target', () => {
-    const scrollActions = macropadLayout
-      .map((key) => key.action)
-      .filter((action) => action.startsWith('scroll-'))
+  it('binds every keycap to 1-9, since the pad is the only digit surface', () => {
+    expect(skills.map((skill) => skill.key).sort()).toEqual([
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+      '8',
+      '9',
+    ])
+  })
 
-    expect(new Set(scrollActions).size).toBe(scrollActions.length)
-    expect(scrollActions).toHaveLength(SECTION_IDS.length)
+  it('can never collide with the section navigation keymap', () => {
+    // Navigation is T/A/P/S/C on the keyboard. A skill bound to a letter would
+    // make the two keymaps ambiguous, so digits are mandatory.
+    for (const skill of skills) {
+      expect(skill.key).toMatch(/^[0-9]$/)
+    }
+  })
+
+  it('gives every skill a real slogan, description and category', () => {
+    for (const skill of skills) {
+      expect(skill.name.length).toBeGreaterThan(0)
+      expect(skill.slogan.length).toBeGreaterThan(10)
+      expect(skill.description.length).toBeGreaterThan(40)
+      expect(skill.category.length).toBeGreaterThan(0)
+      expect(skill.legend.length).toBeLessThanOrEqual(3)
+    }
+  })
+
+  it('only references accents the palette can render', () => {
+    for (const skill of skills) {
+      expect(ACCENT_CYCLE).toContain(skill.accent)
+    }
+  })
+
+  it('only points usedIn at projects that actually exist', () => {
+    const ids = new Set(projects.map((project) => project.id))
+    for (const skill of skills) {
+      for (const id of skill.usedIn) {
+        expect(ids.has(id)).toBe(true)
+      }
+    }
+  })
+})
+
+describe('projectsForSkill', () => {
+  it('resolves every usedIn id to a project object', () => {
+    for (const skill of skills) {
+      const resolved = projectsForSkill(skill)
+      expect(resolved).toHaveLength(skill.usedIn.length)
+      for (const project of resolved) {
+        expect(project.name.length).toBeGreaterThan(0)
+      }
+    }
+  })
+
+  it('drops dangling ids instead of rendering a broken reference', () => {
+    const ghost = { ...skills[0]!, id: 'ghost', usedIn: ['does-not-exist'] }
+    expect(projectsForSkill(ghost)).toHaveLength(0)
   })
 })
 

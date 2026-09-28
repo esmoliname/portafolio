@@ -1,24 +1,46 @@
 import { describe, expect, it } from 'vitest'
 
-import { macropadLayout } from '../data/portfolio'
-import { KEY_BINDINGS, isTypingTarget } from './useMacropadActions'
+import { skills } from '../data/portfolio'
+import { SECTION_IDS } from '../types'
+import { isTypingTarget, SECTION_SHORTCUTS, SKILL_BINDINGS } from './useMacropadActions'
 
-describe('KEY_BINDINGS', () => {
-  it('exposes one binding per keycap that declares a key', () => {
-    const withKeys = macropadLayout.filter((key) => key.key !== undefined)
-    expect(KEY_BINDINGS.size).toBe(withKeys.length)
+describe('SKILL_BINDINGS', () => {
+  it('exposes one binding per skill', () => {
+    expect(SKILL_BINDINGS.size).toBe(skills.length)
   })
 
-  it('resolves every binding to a real keycap id', () => {
-    const ids = new Set(macropadLayout.map((key) => key.id))
-    for (const [, keycapId] of KEY_BINDINGS) {
-      expect(ids.has(keycapId)).toBe(true)
+  it('resolves every binding to a real skill id', () => {
+    const ids = new Set(skills.map((skill) => skill.id))
+    for (const [, skillId] of SKILL_BINDINGS) {
+      expect(ids.has(skillId)).toBe(true)
     }
   })
 
-  it('is keyed by the lowercase physical key', () => {
-    for (const [key] of KEY_BINDINGS) {
+  it('is keyed by a single lowercase character', () => {
+    for (const [key] of SKILL_BINDINGS) {
       expect(key).toBe(key.toLowerCase())
+      expect(key).toHaveLength(1)
+    }
+  })
+})
+
+describe('SECTION_SHORTCUTS', () => {
+  it('covers every section exactly once', () => {
+    const targets = Object.values(SECTION_SHORTCUTS)
+    expect(new Set(targets).size).toBe(targets.length)
+    expect([...targets].sort()).toEqual([...SECTION_IDS].sort())
+  })
+
+  it('uses letter mnemonics, so it can never collide with the digit skillmap', () => {
+    for (const [key, target] of Object.entries(SECTION_SHORTCUTS)) {
+      expect(key).toMatch(/^[a-z]$/)
+      expect(SECTION_IDS).toContain(target)
+    }
+  })
+
+  it('shares no key with the skill bindings', () => {
+    for (const key of Object.keys(SECTION_SHORTCUTS)) {
+      expect(SKILL_BINDINGS.has(key)).toBe(false)
     }
   })
 })

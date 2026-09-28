@@ -39,15 +39,24 @@ export default function App(): React.JSX.Element {
 
   return (
     <div className="relative min-h-screen bg-void">
+      {/*
+        The WebGL layer is `z-0`, NOT `-z-10`. A negative z-index child of this
+        root div stacks against the DOCUMENT root, not against this div, because
+        `relative` + `z-index: auto` establishes no stacking context — so the
+        layer landed in step 2 of the paint order while this div's opaque
+        `bg-void` painted in step 6, on top of it. The scene rendered and was
+        completely hidden. `z-0` puts it after the page background and below
+        `main`'s `z-10`, which is the sandwich a fixed backdrop needs.
+      */}
       <Suspense
         fallback={
           <div
             aria-hidden="true"
-            className="fixed inset-0 -z-10 grid-lines bg-void"
+            className="fixed inset-0 z-0 grid-lines bg-void"
           />
         }
       >
-        <Scene className="fixed inset-0 -z-10 h-full w-full" />
+        <Scene className="pointer-events-auto fixed inset-0 z-0 h-screen w-full" />
       </Suspense>
 
       <a
