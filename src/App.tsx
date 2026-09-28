@@ -8,6 +8,7 @@ import { Contact } from './components/ui/Contact'
 import { Footer } from './components/ui/Footer'
 import { Hero } from './components/ui/Hero'
 import { Nav } from './components/ui/Nav'
+import { SkillPanel } from './components/ui/SkillPanel'
 import { StackSection } from './components/ui/StackSection'
 import { useKeyboard } from './hooks/useKeyboard'
 import { useSectionObserver } from './hooks/useSectionObserver'
@@ -56,7 +57,7 @@ export default function App(): React.JSX.Element {
           />
         }
       >
-        <Scene className="pointer-events-auto fixed inset-0 z-0 h-screen w-full" />
+        <Scene className="pointer-events-none fixed inset-0 z-0 h-screen w-full" />
       </Suspense>
 
       <a
@@ -85,6 +86,9 @@ export default function App(): React.JSX.Element {
         <StackSection />
         <Contact />
       </main>
+
+      {/* Global SkillPanel - accessible from all sections via keyboard (1-9) or click */}
+      <SkillPanel className="fixed left-6 bottom-6 z-40 w-80 max-w-[90vw] lg:left-auto lg:right-6 lg:bottom-6" />
 
       <Footer />
 

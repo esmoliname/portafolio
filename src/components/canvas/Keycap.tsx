@@ -8,6 +8,7 @@ import { dimColor } from '../../lib/macropadPoses'
 import { useAudioStore } from '../../store/useAudioStore'
 import { usePortfolioStore } from '../../store/usePortfolioStore'
 import type { Skill } from '../../types'
+import { getBrandIcon } from './brandIconMap'
 
 const PRESS_DEPTH = 0.075
 const HOVER_LIFT = 0.05
@@ -117,14 +118,19 @@ export function Keycap({ skill, position, dim, onSelect }: KeycapProps): React.J
       </mesh>
 
       <Html center position={[0, 0.02, DEPTH / 2 + 0.01]} style={{ pointerEvents: 'none' }}>
-        <span
-          className={`select-none font-mono text-sm leading-none transition-opacity ${
+        <div
+          className={`select-none transition-opacity ${
             lit ? '' : 'opacity-70'
           }`}
-          style={{ color: dimColor(palette.text, dim * 0.85) }}
+          style={{
+            color: dimColor(palette.text, dim * 0.85),
+            width: '0.45rem',
+            height: '0.45rem',
+            margin: '0 auto',
+          }}
         >
-          {skill.legend}
-        </span>
+          {getBrandIcon(skill)}
+        </div>
         <span
           className="mt-0.5 block text-center font-mono text-[9px] leading-none"
           style={{ color: dimColor('#6b7a94', dim) }}

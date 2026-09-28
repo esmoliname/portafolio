@@ -9,11 +9,6 @@ import { ORB_FRAGMENT_SHADER, ORB_VERTEX_SHADER } from './shaders/intelligence'
 const RADIUS = 1.35
 const PULSE_DECAY = 1.9
 
-/**
- * Concrete uniform shape. Mutating this object directly avoids the
- * `| undefined` that `ShaderMaterial.uniforms` indexing carries under
- * `noUncheckedIndexedAccess`, and it is the same object handed to the material.
- */
 interface OrbUniforms extends Record<string, THREE.IUniform> {
   uTime: { value: number }
   uPulse: { value: number }
@@ -36,7 +31,12 @@ export function IntelOrb(): React.JSX.Element {
   // `pulse` is the live 0..1 value the shader reads; the store counter is only
   // the trigger that resets it.
   const pulse = useRef(0)
+  const uTimeRef = useRef(0)
+  const uPulseRef = useRef(0)
+  const uColorARef = useRef(new THREE.Color(ACCENTS.neon.hex))
+  const uColorBRef = useRef(new THREE.Color('#0b2a5b'))
 
+  // Uniforms object created once - we'll update the material's uniforms directly in useFrame
   const uniforms = useMemo<OrbUniforms>(
     () => ({
       uTime: { value: 0 },
@@ -53,19 +53,33 @@ export function IntelOrb(): React.JSX.Element {
 
   useEffect(() => {
     const palette = ACCENTS[accent]
-    uniforms.uColorA.value.set(palette.hex)
-    uniforms.uColorB.value.set(palette.hex).multiplyScalar(0.22)
-  }, [accent, uniforms])
+    uColorARef.current.set(palette.hex)
+    uColorBRef.current.set(palette.hex).multiplyScalar(0.22)
+    // Update via material ref to avoid mutating hook-created object
+    const material = materialRef.current
+    if (material?.uniforms) {
+      const mats = material.uniforms as OrbUniforms
+      mats.uColorA.value.copy(uColorARef.current)
+      mats.uColorB.value.copy(uColorBRef.current)
+    }
+  }, [accent])
 
   useFrame((_, delta) => {
-    uniforms.uTime.value += delta
-    pulse.current = Math.max(0, pulse.current - delta * PULSE_DECAY)
-    uniforms.uPulse.value = pulse.current
+    uTimeRef.current += delta
+    uPulseRef.current = Math.max(0, uPulseRef.current - delta * PULSE_DECAY)
+
+    // Update via material ref to avoid mutating hook-created object
+    const material = materialRef.current
+    if (material?.uniforms) {
+      const mats = material.uniforms as OrbUniforms
+      mats.uTime.value = uTimeRef.current
+      mats.uPulse.value = uPulseRef.current
+    }
 
     const group = groupRef.current
     if (group) {
       group.rotation.y += delta * 0.14
-      group.rotation.x = Math.sin(uniforms.uTime.value * 0.5) * 0.12
+      group.rotation.x = Math.sin(uTimeRef.current * 0.5) * 0.12
     }
   })
 

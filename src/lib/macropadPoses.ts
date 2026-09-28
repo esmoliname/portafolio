@@ -14,7 +14,7 @@ import type { MacropadPose, SectionId } from '../types'
 export const MACROPAD_POSES: Readonly<Record<SectionId, MacropadPose>> = {
   hero: { position: [0, -0.15, 0], rotation: [-0.42, 0, 0], scale: 1, dim: 0 },
   about: { position: [2.1, -0.2, -0.5], rotation: [-0.28, 0.55, 0], scale: 0.78, dim: 0.45 },
-  projects: { position: [2.9, -0.55, -1.6], rotation: [-0.12, 0.95, 0.22], scale: 0.6, dim: 0.72 },
+  projects: { position: [2.9, -0.55, -1.6], rotation: [-0.12, 0.95, 0.22], scale: 0.6, dim: 0.48 },
   stack: { position: [1.9, -0.05, 0.2], rotation: [-0.5, -0.38, 0], scale: 1.06, dim: 0 },
   contact: { position: [-2.6, -0.35, 0.3], rotation: [-0.26, -0.8, 0.12], scale: 0.8, dim: 0.3 },
 }

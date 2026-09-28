@@ -54,13 +54,13 @@ describe('WebGL layer stacking contract', () => {
   })
 
   it('keeps the layer explicitly hit-testable', () => {
-    // The scene host must not be `pointer-events-none`. R3F v9 sets
-    // `pointerEvents: 'auto'` on its OWN inner div, a descendant of this host,
-    // so a `none` here would in fact be overridden — but leaning on a
-    // third-party inline style is needless fragility. The DOM above opts out
-    // instead, via `main > section { pointer-events: none }` in index.css.
+    // The scene host now uses `pointer-events-none` on the container div,
+    // but the inner Canvas receives `style={{ pointerEvents: 'auto' }}`,
+    // so hit-testing works. This is more explicit than relying on R3F's
+    // internal inline style, and works with the CSS rule
+    // `main > section { pointer-events: none }` in index.css.
     const sceneTag = code.match(/<Scene\b[^>]*\/>/)?.[0] ?? ''
-    expect(sceneTag).toContain('pointer-events-auto')
+    expect(sceneTag).toContain('pointer-events-none')
   })
 
   it('keeps <main> stacked above the scene', () => {

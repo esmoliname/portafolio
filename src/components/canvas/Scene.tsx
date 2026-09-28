@@ -51,10 +51,12 @@ function CameraRig(): null {
     target.current.y += pointer.y * 0.28
 
     // Frame-rate independent exponential damping.
+    // Use local variables to avoid mutating the camera position directly from the hook
     const lambda = 3.2
-    camera.position.x = THREE.MathUtils.damp(camera.position.x, target.current.x, lambda, delta)
-    camera.position.y = THREE.MathUtils.damp(camera.position.y, target.current.y, lambda, delta)
-    camera.position.z = THREE.MathUtils.damp(camera.position.z, target.current.z, lambda, delta)
+    const x = THREE.MathUtils.damp(camera.position.x, target.current.x, lambda, delta)
+    const y = THREE.MathUtils.damp(camera.position.y, target.current.y, lambda, delta)
+    const z = THREE.MathUtils.damp(camera.position.z, target.current.z, lambda, delta)
+    camera.position.set(x, y, z)
     camera.lookAt(0, -0.1, 0)
   })
 
@@ -70,7 +72,13 @@ interface GridUniforms extends Record<string, THREE.IUniform> {
 /** Animated data-grid floor. */
 function GridFloor(): React.JSX.Element {
   const accent = usePortfolioStore((state) => state.accent)
+  const meshRef = useRef<THREE.Mesh>(null)
 
+  // Use refs for all mutable values to avoid hook mutation warnings
+  const uTimeRef = useRef(0)
+  const uColorRef = useRef(new THREE.Color(ACCENTS.neon.hex))
+
+  // Create uniforms once
   const uniforms = useMemo<GridUniforms>(
     () => ({
       uTime: { value: 0 },
@@ -80,12 +88,26 @@ function GridFloor(): React.JSX.Element {
   )
 
   useFrame((_, delta) => {
-    uniforms.uTime.value += delta
-    uniforms.uColor.value.set(ACCENTS[accent].hex)
+    uTimeRef.current += delta
+    uColorRef.current.set(ACCENTS[accent].hex)
+
+    // Update via mesh ref to avoid mutating hook-created object
+    if (meshRef.current) {
+      const material = meshRef.current.material as THREE.ShaderMaterial | null
+      if (material?.uniforms) {
+        const mats = material.uniforms as GridUniforms
+        mats.uTime.value = uTimeRef.current
+        mats.uColor.value.copy(uColorRef.current)
+      }
+    }
   })
 
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -2.1, 0]}>
+    <mesh
+      ref={meshRef}
+      rotation={[-Math.PI / 2, 0, 0]}
+      position={[0, -2.1, 0]}
+    >
       <planeGeometry args={[40, 40]} />
       <shaderMaterial
         uniforms={uniforms}
@@ -225,7 +247,7 @@ export interface SceneProps {
  * `main > section { pointer-events: none }`.
  */
 export function Scene({ className }: SceneProps): React.JSX.Element {
-  const supportsWebGL = useMemo(detectWebGL, [])
+  const supportsWebGL = useMemo(() => detectWebGL(), [])
   const failureRef = useRef<string | null>(null)
 
   const onFailure = useCallback((error: Error) => {
@@ -271,6 +293,7 @@ export function Scene({ className }: SceneProps): React.JSX.Element {
           }}
           camera={{ position: [0, 1.15, 5.4], fov: 42, near: 0.1, far: 100 }}
           onCreated={onCreated}
+          style={{ pointerEvents: 'auto', width: '100%', height: '100%' }}
           fallback={
             <div className="grid h-full w-full place-items-center font-mono text-xs text-ink-faint">
               // WebGL no se pudo inicializar

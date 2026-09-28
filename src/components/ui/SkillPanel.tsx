@@ -15,6 +15,10 @@ const IDLE_BODY = 'Cada tecla es una tecnología. Elegí una para ver en qué pr
 /** Read out when a skill has no project behind it. */
 const NO_PROJECTS = 'Uso transversal a todos los proyectos'
 
+interface SkillPanelProps {
+  readonly className?: string
+}
+
 /**
  * Left-hand readout for the selected keycap.
  *
@@ -26,7 +30,7 @@ const NO_PROJECTS = 'Uso transversal a todos los proyectos'
  * an `aria-live` region so a screen reader announces the new selection instead
  * of leaving the visitor guessing what the 3D scene just did.
  */
-export function SkillPanel(): JSX.Element {
+export function SkillPanel({ className }: SkillPanelProps): JSX.Element {
   const skill = useActiveSkill()
   const themeAccent = usePortfolioStore((state) => state.accent)
   const clearSkill = usePortfolioStore((state) => state.clearSkill)
@@ -40,7 +44,7 @@ export function SkillPanel(): JSX.Element {
   const slide = reduceMotion ? 0 : 14
 
   return (
-    <div className="relative w-full">
+    <div className={cn('relative w-full', className)}>
       <AnimatePresence mode="wait" initial={false}>
         {skill ? (
           <motion.aside
